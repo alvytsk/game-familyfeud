@@ -1,0 +1,16 @@
+services:
+  app:
+    ports: !override []
+    networks:
+      - default
+      - edge-proxy
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=edge-proxy
+      - traefik.http.routers.familyfeud.rule=Host(`game.synecta.demo`)
+      - traefik.http.routers.familyfeud.entrypoints=web
+      - traefik.http.services.familyfeud-svc.loadbalancer.server.port=3000
+
+networks:
+  edge-proxy:
+    external: true
