@@ -1,5 +1,5 @@
 import { useReducer, useEffect, useRef, useCallback } from 'react';
-import type { GameState, ServerToScreen, TeamId } from '@familyfeud/shared';
+import type { GameState, ServerToScreen, TeamId, RoundStage } from '@familyfeud/shared';
 
 interface ScreenState {
   connected: boolean;
@@ -8,6 +8,12 @@ interface ScreenState {
   lastReveal: { rank: number; text: string; points: number } | null;
   lastStrike: { teamId: TeamId; totalStrikes: number } | null;
   timerRemaining: number | null;
+  /** New animation triggers */
+  lastStageChange: { stage: RoundStage; teamId: TeamId | null } | null;
+  lastStealResult: { success: boolean; teamId: TeamId } | null;
+  lastReverseRevealed: boolean;
+  lastBigGameReveal: { questionIndex: number; playerNum: 1 | 2; points: number } | null;
+  lastBigGamePhase: string | null;
 }
 
 type Action =
@@ -18,7 +24,14 @@ type Action =
   | { type: 'strike-added'; teamId: TeamId; totalStrikes: number }
   | { type: 'timer-tick'; remaining: number }
   | { type: 'clear-reveal' }
-  | { type: 'clear-strike' };
+  | { type: 'clear-strike' }
+  | { type: 'stage-changed'; stage: RoundStage; teamId: TeamId | null }
+  | { type: 'steal-result'; success: boolean; teamId: TeamId }
+  | { type: 'reverse-revealed' }
+  | { type: 'big-game-answer-revealed'; questionIndex: number; playerNum: 1 | 2; points: number }
+  | { type: 'big-game-phase-changed'; phase: string }
+  | { type: 'clear-steal' }
+  | { type: 'clear-big-game-reveal' };
 
 function reducer(state: ScreenState, action: Action): ScreenState {
   switch (action.type) {
@@ -28,18 +41,16 @@ function reducer(state: ScreenState, action: Action): ScreenState {
       return { ...state, connected: false };
     case 'state-snapshot': {
       const roundChanged = state.gameState?.round?.questionIndex !== action.state.round?.questionIndex;
-      console.log('[SCREEN] state-snapshot received', {
-        roundChanged,
-        oldQuestionIndex: state.gameState?.round?.questionIndex,
-        newQuestionIndex: action.state.round?.questionIndex,
-        answers: action.state.round?.answers.map(a => ({ rank: a.rank, revealed: a.revealed })),
-      });
+      const phaseChanged = state.gameState?.phase !== action.state.phase;
       return {
         ...state,
         gameState: action.state,
         timerRemaining: action.state.timer.remaining,
         lastReveal: roundChanged ? null : state.lastReveal,
         lastStrike: roundChanged ? null : state.lastStrike,
+        lastStageChange: phaseChanged ? null : state.lastStageChange,
+        lastStealResult: phaseChanged ? null : state.lastStealResult,
+        lastReverseRevealed: phaseChanged ? false : state.lastReverseRevealed,
       };
     }
     case 'answer-revealed':
@@ -58,6 +69,23 @@ function reducer(state: ScreenState, action: Action): ScreenState {
       return { ...state, lastReveal: null };
     case 'clear-strike':
       return { ...state, lastStrike: null };
+    case 'stage-changed':
+      return { ...state, lastStageChange: { stage: action.stage, teamId: action.teamId } };
+    case 'steal-result':
+      return { ...state, lastStealResult: { success: action.success, teamId: action.teamId } };
+    case 'reverse-revealed':
+      return { ...state, lastReverseRevealed: true };
+    case 'big-game-answer-revealed':
+      return {
+        ...state,
+        lastBigGameReveal: { questionIndex: action.questionIndex, playerNum: action.playerNum, points: action.points },
+      };
+    case 'big-game-phase-changed':
+      return { ...state, lastBigGamePhase: action.phase };
+    case 'clear-steal':
+      return { ...state, lastStealResult: null };
+    case 'clear-big-game-reveal':
+      return { ...state, lastBigGameReveal: null };
     default:
       return state;
   }
@@ -69,6 +97,11 @@ const initialState: ScreenState = {
   lastReveal: null,
   lastStrike: null,
   timerRemaining: null,
+  lastStageChange: null,
+  lastStealResult: null,
+  lastReverseRevealed: false,
+  lastBigGameReveal: null,
+  lastBigGamePhase: null,
 };
 
 export function useScreenState() {
@@ -107,6 +140,21 @@ export function useScreenState() {
         case 'timer-tick':
           dispatch({ type: 'timer-tick', remaining: msg.remaining });
           break;
+        case 'stage-changed':
+          dispatch({ type: 'stage-changed', stage: msg.stage, teamId: msg.teamId });
+          break;
+        case 'steal-result':
+          dispatch({ type: 'steal-result', success: msg.success, teamId: msg.teamId });
+          break;
+        case 'reverse-revealed':
+          dispatch({ type: 'reverse-revealed' });
+          break;
+        case 'big-game-answer-revealed':
+          dispatch({ type: 'big-game-answer-revealed', questionIndex: msg.questionIndex, playerNum: msg.playerNum, points: msg.points });
+          break;
+        case 'big-game-phase-changed':
+          dispatch({ type: 'big-game-phase-changed', phase: msg.phase });
+          break;
       }
     };
 
@@ -130,6 +178,8 @@ export function useScreenState() {
 
   const clearReveal = useCallback(() => dispatch({ type: 'clear-reveal' }), []);
   const clearStrike = useCallback(() => dispatch({ type: 'clear-strike' }), []);
+  const clearSteal = useCallback(() => dispatch({ type: 'clear-steal' }), []);
+  const clearBigGameReveal = useCallback(() => dispatch({ type: 'clear-big-game-reveal' }), []);
 
-  return { ...state, clearReveal, clearStrike };
+  return { ...state, clearReveal, clearStrike, clearSteal, clearBigGameReveal };
 }

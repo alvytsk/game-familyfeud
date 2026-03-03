@@ -83,9 +83,6 @@ export function registerWsGateway(app: FastifyInstance): void {
         const result = await handleCommand(cmd);
 
         const currentState = gameState.getState();
-        if (cmd.type === 'next-round' || cmd.type === 'start-game') {
-          console.log(`[SERVER] ${cmd.type} → round answers:`, currentState.round?.answers.map(a => ({ rank: a.rank, revealed: a.revealed })));
-        }
 
         // Broadcast state to all
         broadcastStateToAll(currentState);

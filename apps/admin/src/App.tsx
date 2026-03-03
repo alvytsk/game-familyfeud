@@ -3,7 +3,10 @@ import type { ServerToAdmin, AdminCommand } from '@familyfeud/shared';
 import { useWebSocket } from './hooks/useWebSocket.js';
 import { useGameStore } from './hooks/useGameState.js';
 import { LobbyPage } from './pages/LobbyPage.js';
-import { GamePage } from './pages/GamePage.js';
+import { RoundPage } from './pages/RoundPage.js';
+import { ReversePage } from './pages/ReversePage.js';
+import { BigGamePage } from './pages/BigGamePage.js';
+import { GameOverPage } from './pages/GameOverPage.js';
 import { PackEditorPage } from './pages/PackEditorPage.js';
 
 type Tab = 'game' | 'packs';
@@ -70,6 +73,24 @@ export default function App() {
     );
   }
 
+  function renderGamePage() {
+    if (!store.gameState) {
+      return <div className="text-gray-400 text-center py-10">Загрузка состояния игры...</div>;
+    }
+    switch (store.gameState.phase) {
+      case 'lobby':
+        return <LobbyPage gameState={store.gameState} packs={store.packs} send={send} />;
+      case 'round':
+        return <RoundPage gameState={store.gameState} send={send} />;
+      case 'reverse':
+        return <ReversePage gameState={store.gameState} send={send} />;
+      case 'big-game':
+        return <BigGamePage gameState={store.gameState} send={send} />;
+      case 'game-over':
+        return <GameOverPage gameState={store.gameState} send={send} />;
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Nav */}
@@ -97,17 +118,7 @@ export default function App() {
 
       {/* Content */}
       <div className="max-w-2xl mx-auto p-4">
-        {tab === 'packs' ? (
-          <PackEditorPage />
-        ) : store.gameState ? (
-          store.gameState.phase === 'lobby' ? (
-            <LobbyPage gameState={store.gameState} packs={store.packs} send={send} />
-          ) : (
-            <GamePage gameState={store.gameState} send={send} />
-          )
-        ) : (
-          <div className="text-gray-400 text-center py-10">Загрузка состояния игры...</div>
-        )}
+        {tab === 'packs' ? <PackEditorPage /> : renderGamePage()}
       </div>
     </div>
   );

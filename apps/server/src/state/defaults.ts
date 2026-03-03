@@ -17,6 +17,9 @@ export function createDefaultState(): GameState {
       total: DEFAULT_TIMER_SECONDS,
     },
     roundNumber: 0,
-    totalRounds: 0,
+    totalRounds: 3,
+    reverseRound: null,
+    bigGame: null,
+    winnerTeamId: null,
   };
 }

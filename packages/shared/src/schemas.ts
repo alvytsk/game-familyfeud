@@ -19,6 +19,19 @@ export const AdminCommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('undo') }),
   z.object({ type: z.literal('end-game') }),
   z.object({ type: z.literal('reset-game') }),
+  // New: simple round commands
+  z.object({ type: z.literal('set-playing-team'), teamId: TeamIdSchema }),
+  z.object({ type: z.literal('steal-success') }),
+  z.object({ type: z.literal('steal-fail') }),
+  // New: reverse round commands
+  z.object({ type: z.literal('start-reverse') }),
+  z.object({ type: z.literal('set-reverse-choice'), teamId: TeamIdSchema, rank: z.number().int().min(1).max(6) }),
+  z.object({ type: z.literal('reveal-reverse') }),
+  // New: big game commands
+  z.object({ type: z.literal('start-big-game') }),
+  z.object({ type: z.literal('big-game-select-match'), questionIndex: z.number().int().min(0), rank: z.number().int().min(0) }),
+  z.object({ type: z.literal('big-game-next') }),
+  z.object({ type: z.literal('end-big-game') }),
 ]);
 
 export const ScreenCommandSchema = z.object({ type: z.literal('subscribe') });
@@ -35,5 +48,16 @@ export const QuestionPackSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   description: z.string().optional(),
-  questions: z.array(PackQuestionSchema).min(1),
-});
+  questions: z.array(PackQuestionSchema).optional(),
+  simpleRounds: z.array(PackQuestionSchema).optional(),
+  reverseRound: PackQuestionSchema.optional(),
+  bigGame: z.array(PackQuestionSchema).optional(),
+}).refine(
+  (pack) => {
+    // Must have either legacy questions or new structured format
+    const hasLegacy = pack.questions && pack.questions.length > 0;
+    const hasNew = pack.simpleRounds && pack.simpleRounds.length > 0;
+    return hasLegacy || hasNew;
+  },
+  { message: 'Pack must have either questions (legacy) or simpleRounds (new format)' },
+);

@@ -1,4 +1,4 @@
-import type { GameState, TeamId, QuestionPack } from './types.js';
+import type { GameState, TeamId, QuestionPack, RoundStage } from './types.js';
 
 // Admin → Server
 export type AdminCommand =
@@ -17,7 +17,20 @@ export type AdminCommand =
   | { type: 'timer-reset'; seconds?: number }
   | { type: 'undo' }
   | { type: 'end-game' }
-  | { type: 'reset-game' };
+  | { type: 'reset-game' }
+  // New: simple round commands
+  | { type: 'set-playing-team'; teamId: TeamId }
+  | { type: 'steal-success' }
+  | { type: 'steal-fail' }
+  // New: reverse round commands
+  | { type: 'start-reverse' }
+  | { type: 'set-reverse-choice'; teamId: TeamId; rank: number }
+  | { type: 'reveal-reverse' }
+  // New: big game commands
+  | { type: 'start-big-game' }
+  | { type: 'big-game-select-match'; questionIndex: number; rank: number }
+  | { type: 'big-game-next' }
+  | { type: 'end-big-game' };
 
 // Server → Admin
 export type ServerToAdmin =
@@ -32,7 +45,12 @@ export type ServerToScreen =
   | { type: 'state-snapshot'; state: GameState }
   | { type: 'answer-revealed'; rank: number; text: string; points: number }
   | { type: 'strike-added'; teamId: TeamId; totalStrikes: number }
-  | { type: 'timer-tick'; remaining: number };
+  | { type: 'timer-tick'; remaining: number }
+  | { type: 'stage-changed'; stage: RoundStage; teamId: TeamId | null }
+  | { type: 'steal-result'; success: boolean; teamId: TeamId }
+  | { type: 'reverse-revealed' }
+  | { type: 'big-game-answer-revealed'; questionIndex: number; playerNum: 1 | 2; points: number }
+  | { type: 'big-game-phase-changed'; phase: string };
 
 // Screen → Server
 export type ScreenCommand = { type: 'subscribe' };

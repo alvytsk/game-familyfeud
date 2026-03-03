@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { QuestionPack } from '@familyfeud/shared';
+import type { QuestionPack, PackQuestion } from '@familyfeud/shared';
+import { SIMPLE_ROUND_COUNT, BIG_GAME_QUESTIONS } from '@familyfeud/shared';
 import { config } from '../config.js';
 
 async function ensureDir(): Promise<void> {
@@ -22,6 +23,35 @@ function packPath(id: string): string {
     throw new Error(`Invalid pack ID: ${id}`);
   }
   return resolved;
+}
+
+/**
+ * Normalize a legacy flat pack (with only `questions[]`) to the new structured format.
+ * If the pack already has `simpleRounds`, returns as-is.
+ */
+export function normalizePack(pack: QuestionPack): QuestionPack {
+  if (pack.simpleRounds && pack.simpleRounds.length > 0) {
+    return pack;
+  }
+
+  // Legacy format: distribute questions into sections
+  const questions = pack.questions ?? [];
+  const simpleRounds: PackQuestion[] = questions.slice(0, SIMPLE_ROUND_COUNT);
+  const reverseRound: PackQuestion | undefined = questions[SIMPLE_ROUND_COUNT];
+  const bigGame: PackQuestion[] = questions.slice(SIMPLE_ROUND_COUNT + 1, SIMPLE_ROUND_COUNT + 1 + BIG_GAME_QUESTIONS);
+
+  // If we don't have enough questions for all sections, fill with what we have
+  // At minimum we need simpleRounds
+  if (simpleRounds.length === 0 && questions.length > 0) {
+    return { ...pack, simpleRounds: questions.slice(0, Math.min(questions.length, SIMPLE_ROUND_COUNT)) };
+  }
+
+  return {
+    ...pack,
+    simpleRounds,
+    reverseRound,
+    bigGame: bigGame.length > 0 ? bigGame : undefined,
+  };
 }
 
 export async function listPacks(): Promise<Pick<QuestionPack, 'id' | 'name' | 'description'>[]> {
@@ -46,7 +76,8 @@ export async function listPacks(): Promise<Pick<QuestionPack, 'id' | 'name' | 'd
 export async function getPack(id: string): Promise<QuestionPack | null> {
   try {
     const raw = await fs.readFile(packPath(id), 'utf-8');
-    return JSON.parse(raw) as QuestionPack;
+    const pack = JSON.parse(raw) as QuestionPack;
+    return normalizePack(pack);
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') return null;
     console.error(`Failed to read pack ${id}:`, err instanceof Error ? err.message : err);

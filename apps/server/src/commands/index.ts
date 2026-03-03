@@ -1,7 +1,6 @@
 import type { AdminCommand, ServerToScreen } from '@familyfeud/shared';
-import { MAX_STRIKES } from '@familyfeud/shared';
 import { gameState } from '../state/gameState.js';
-import { getPack, listPacks } from '../persistence/packs.js';
+import { getPack } from '../persistence/packs.js';
 import * as handlers from './handlers.js';
 
 export interface CommandResult {
@@ -48,36 +47,67 @@ export async function handleCommand(cmd: AdminCommand): Promise<CommandResult> {
       break;
     }
 
-    case 'reveal-answer': {
-      let revealed: handlers.RevealResult | null = null;
-      gameState.update(draft => {
-        revealed = handlers.revealAnswer(draft, cmd.rank);
-      });
-      if (revealed) {
-        const r = revealed as handlers.RevealResult;
+    case 'set-playing-team': {
+      gameState.update(draft => handlers.setPlayingTeam(draft, cmd.teamId));
+      const newState = gameState.getState();
+      if (newState.round) {
         result.screenEvents = [
-          { type: 'answer-revealed', rank: r.rank, text: r.text, points: r.points },
+          { type: 'stage-changed', stage: newState.round.stage, teamId: cmd.teamId },
+        ];
+      }
+      break;
+    }
+
+    case 'reveal-answer': {
+      let outcome: handlers.RevealOutcome | null = null;
+      gameState.update(draft => {
+        outcome = handlers.revealAnswer(draft, cmd.rank);
+      });
+      if (outcome) {
+        const o = outcome as handlers.RevealOutcome;
+        result.screenEvents = [
+          { type: 'answer-revealed', rank: o.reveal.rank, text: o.reveal.text, points: o.reveal.points },
         ];
       }
       break;
     }
 
     case 'add-strike': {
-      const current = gameState.getState();
-      if (current.activeTeamId !== cmd.teamId) {
-        throw new Error('Cannot strike the inactive team');
-      }
-      let totalStrikes = 0;
+      let strikeResult: handlers.StrikeResult = { totalStrikes: 0, stageChanged: false };
       gameState.update(draft => {
-        totalStrikes = handlers.addStrike(draft, cmd.teamId);
-        if (totalStrikes >= MAX_STRIKES) {
-          handlers.switchActiveTeam(draft);
-          draft.teams[0].strikes = 0;
-          draft.teams[1].strikes = 0;
-        }
+        strikeResult = handlers.addStrike(draft, cmd.teamId);
       });
       result.screenEvents = [
-        { type: 'strike-added', teamId: cmd.teamId, totalStrikes },
+        { type: 'strike-added', teamId: cmd.teamId, totalStrikes: strikeResult.totalStrikes },
+      ];
+      if (strikeResult.stageChanged) {
+        const newState = gameState.getState();
+        if (newState.round) {
+          result.screenEvents.push({
+            type: 'stage-changed',
+            stage: newState.round.stage,
+            teamId: newState.activeTeamId,
+          });
+        }
+      }
+      break;
+    }
+
+    case 'steal-success': {
+      gameState.update(draft => handlers.stealSuccess(draft));
+      const newState = gameState.getState();
+      result.screenEvents = [
+        { type: 'steal-result', success: true, teamId: newState.activeTeamId },
+      ];
+      break;
+    }
+
+    case 'steal-fail': {
+      const preState = gameState.getState();
+      const playingTeamId = preState.round?.playingTeamId ?? preState.activeTeamId;
+      gameState.update(draft => handlers.stealFail(draft));
+      result.screenEvents = [
+        { type: 'steal-result', success: false, teamId: playingTeamId },
       ];
       break;
     }
@@ -92,6 +122,64 @@ export async function handleCommand(cmd: AdminCommand): Promise<CommandResult> {
 
     case 'switch-active-team':
       gameState.update(draft => handlers.switchActiveTeam(draft));
+      break;
+
+    // Reverse round commands
+    case 'start-reverse': {
+      const state = gameState.getState();
+      if (!state.packId) throw new Error('No pack loaded');
+      const pack = await getPack(state.packId);
+      if (!pack) throw new Error('Pack not found');
+      if (!pack.reverseRound) throw new Error('Pack has no reverse round');
+      gameState.update(draft => handlers.startReverse(draft, pack));
+      break;
+    }
+
+    case 'set-reverse-choice':
+      gameState.update(draft => handlers.setReverseChoice(draft, cmd.teamId, cmd.rank));
+      break;
+
+    case 'reveal-reverse':
+      gameState.update(draft => handlers.revealReverse(draft));
+      result.screenEvents = [{ type: 'reverse-revealed' }];
+      break;
+
+    // Big game commands
+    case 'start-big-game': {
+      const state = gameState.getState();
+      if (!state.packId) throw new Error('No pack loaded');
+      const pack = await getPack(state.packId);
+      if (!pack) throw new Error('Pack not found');
+      if (!pack.bigGame || pack.bigGame.length === 0) throw new Error('Pack has no big game questions');
+      gameState.update(draft => handlers.startBigGame(draft, pack));
+      result.screenEvents = [{ type: 'big-game-phase-changed', phase: 'player1' }];
+      break;
+    }
+
+    case 'big-game-select-match': {
+      let points = 0;
+      gameState.update(draft => {
+        points = handlers.bigGameSelectMatch(draft, cmd.questionIndex, cmd.rank);
+      });
+      const bgState = gameState.getState().bigGame;
+      const playerNum = bgState?.phase === 'player1' ? 1 : 2;
+      result.screenEvents = [
+        { type: 'big-game-answer-revealed', questionIndex: cmd.questionIndex, playerNum: playerNum as 1 | 2, points },
+      ];
+      break;
+    }
+
+    case 'big-game-next': {
+      gameState.update(draft => handlers.bigGameNext(draft));
+      const bgState = gameState.getState().bigGame;
+      if (bgState) {
+        result.screenEvents = [{ type: 'big-game-phase-changed', phase: bgState.phase }];
+      }
+      break;
+    }
+
+    case 'end-big-game':
+      gameState.update(draft => handlers.endBigGame(draft));
       break;
 
     case 'timer-start':

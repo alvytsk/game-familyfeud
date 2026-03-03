@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { QuestionPack, PackQuestion } from '@familyfeud/shared';
+import { SIMPLE_ROUND_COUNT, BIG_GAME_QUESTIONS } from '@familyfeud/shared';
 
 export function PackEditorPage() {
   const [packs, setPacks] = useState<QuestionPack[]>([]);
@@ -78,7 +79,7 @@ export function PackEditorPage() {
       const text = await file.text();
       try {
         const pack = JSON.parse(text) as QuestionPack;
-        if (!pack.id || !pack.name || !pack.questions) {
+        if (!pack.id || !pack.name) {
           alert('Неверный формат набора');
           return;
         }
@@ -88,6 +89,14 @@ export function PackEditorPage() {
       }
     };
     input.click();
+  };
+
+  const totalQuestions = (pack: QuestionPack) => {
+    const simple = pack.simpleRounds?.length ?? 0;
+    const reverse = pack.reverseRound ? 1 : 0;
+    const big = pack.bigGame?.length ?? 0;
+    const legacy = pack.questions?.length ?? 0;
+    return simple + reverse + big || legacy;
   };
 
   if (loading) return <div className="text-gray-400">Загрузка наборов...</div>;
@@ -110,7 +119,13 @@ export function PackEditorPage() {
         <div className="flex gap-2">
           <button
             className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
-            onClick={() => setEditing({ id: '', name: '', questions: [] })}
+            onClick={() => setEditing({
+              id: '',
+              name: '',
+              simpleRounds: Array.from({ length: SIMPLE_ROUND_COUNT }, () => ({ question: '', answers: [{ text: '', points: 10 }] })),
+              reverseRound: { question: '', answers: [{ text: '', points: 10 }] },
+              bigGame: Array.from({ length: BIG_GAME_QUESTIONS }, () => ({ question: '', answers: [{ text: '', points: 10 }] })),
+            })}
           >
             Новый набор
           </button>
@@ -127,7 +142,7 @@ export function PackEditorPage() {
         <div key={pack.id} className="bg-gray-800 rounded-lg p-3 flex justify-between items-center">
           <div>
             <div className="font-semibold">{pack.name}</div>
-            <div className="text-sm text-gray-400">{pack.questions.length} вопросов</div>
+            <div className="text-sm text-gray-400">{totalQuestions(pack)} вопросов</div>
           </div>
           <div className="flex gap-2">
             <button
@@ -155,6 +170,80 @@ export function PackEditorPage() {
   );
 }
 
+function QuestionEditor({
+  question,
+  index,
+  label,
+  onChange,
+  onRemove,
+}: {
+  question: PackQuestion;
+  index: number;
+  label: string;
+  onChange: (q: PackQuestion) => void;
+  onRemove?: () => void;
+}) {
+  return (
+    <div className="bg-gray-800 rounded-lg p-3 space-y-2">
+      <div className="flex gap-2">
+        <input
+          className="flex-1 border rounded px-2 py-1 bg-gray-700 text-white border-gray-600 text-sm"
+          value={question.question}
+          onChange={(e) => onChange({ ...question, question: e.target.value })}
+          placeholder={label}
+        />
+        {onRemove && (
+          <button className="text-red-400 hover:text-red-300 text-sm" onClick={onRemove}>
+            Удалить
+          </button>
+        )}
+      </div>
+      {question.answers.map((a, ai) => (
+        <div key={ai} className="flex gap-2 ml-4">
+          <input
+            className="flex-1 border rounded px-2 py-1 bg-gray-700 text-white border-gray-600 text-xs"
+            value={a.text}
+            onChange={(e) => {
+              const answers = [...question.answers];
+              answers[ai] = { ...a, text: e.target.value };
+              onChange({ ...question, answers });
+            }}
+            placeholder="Текст ответа"
+          />
+          <input
+            type="number"
+            className="w-16 border rounded px-2 py-1 bg-gray-700 text-white border-gray-600 text-xs"
+            value={a.points}
+            onChange={(e) => {
+              const answers = [...question.answers];
+              answers[ai] = { ...a, points: parseInt(e.target.value) || 0 };
+              onChange({ ...question, answers });
+            }}
+            placeholder="Очк."
+          />
+          <button
+            className="text-red-400 hover:text-red-300 text-xs"
+            onClick={() => {
+              const answers = question.answers.filter((_, i) => i !== ai);
+              onChange({ ...question, answers });
+            }}
+          >
+            x
+          </button>
+        </div>
+      ))}
+      <button
+        className="ml-4 text-blue-400 hover:text-blue-300 text-xs"
+        onClick={() => {
+          onChange({ ...question, answers: [...question.answers, { text: '', points: 10 }] });
+        }}
+      >
+        + Добавить ответ
+      </button>
+    </div>
+  );
+}
+
 function PackForm({
   pack,
   onSave,
@@ -167,26 +256,43 @@ function PackForm({
   const [name, setName] = useState(pack.name);
   const [description, setDescription] = useState(pack.description || '');
   const [id, setId] = useState(pack.id);
-  const [questions, setQuestions] = useState<PackQuestion[]>(pack.questions);
 
-  const addQuestion = () => {
-    setQuestions([...questions, { question: '', answers: [{ text: '', points: 10 }] }]);
-  };
+  // Initialize from either new format or legacy
+  const [simpleRounds, setSimpleRounds] = useState<PackQuestion[]>(
+    pack.simpleRounds ?? pack.questions?.slice(0, SIMPLE_ROUND_COUNT) ?? [],
+  );
+  const [reverseRound, setReverseRound] = useState<PackQuestion>(
+    pack.reverseRound ?? pack.questions?.[SIMPLE_ROUND_COUNT] ?? { question: '', answers: [{ text: '', points: 10 }] },
+  );
+  const [bigGame, setBigGame] = useState<PackQuestion[]>(
+    pack.bigGame ?? pack.questions?.slice(SIMPLE_ROUND_COUNT + 1, SIMPLE_ROUND_COUNT + 1 + BIG_GAME_QUESTIONS) ?? [],
+  );
 
-  const updateQuestion = (idx: number, q: PackQuestion) => {
-    const copy = [...questions];
+  const updateSimpleRound = (idx: number, q: PackQuestion) => {
+    const copy = [...simpleRounds];
     copy[idx] = q;
-    setQuestions(copy);
+    setSimpleRounds(copy);
   };
 
-  const removeQuestion = (idx: number) => {
-    setQuestions(questions.filter((_, i) => i !== idx));
+  const updateBigGameQ = (idx: number, q: PackQuestion) => {
+    const copy = [...bigGame];
+    copy[idx] = q;
+    setBigGame(copy);
   };
 
   const handleSave = () => {
     const packId = id || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    onSave({ id: packId, name, description: description || undefined, questions });
+    onSave({
+      id: packId,
+      name,
+      description: description || undefined,
+      simpleRounds,
+      reverseRound,
+      bigGame,
+    });
   };
+
+  const isValid = name.trim() && simpleRounds.length > 0;
 
   return (
     <div className="space-y-4">
@@ -216,80 +322,69 @@ function PackForm({
         placeholder="Описание (необязательно)"
       />
 
-      <div className="space-y-4">
-        {questions.map((q, qi) => (
-          <div key={qi} className="bg-gray-800 rounded-lg p-3 space-y-2">
-            <div className="flex gap-2">
-              <input
-                className="flex-1 border rounded px-2 py-1 bg-gray-700 text-white border-gray-600 text-sm"
-                value={q.question}
-                onChange={(e) => updateQuestion(qi, { ...q, question: e.target.value })}
-                placeholder={`Вопрос ${qi + 1}`}
-              />
-              <button
-                className="text-red-400 hover:text-red-300 text-sm"
-                onClick={() => removeQuestion(qi)}
-              >
-                Удалить
-              </button>
-            </div>
-            {q.answers.map((a, ai) => (
-              <div key={ai} className="flex gap-2 ml-4">
-                <input
-                  className="flex-1 border rounded px-2 py-1 bg-gray-700 text-white border-gray-600 text-xs"
-                  value={a.text}
-                  onChange={(e) => {
-                    const answers = [...q.answers];
-                    answers[ai] = { ...a, text: e.target.value };
-                    updateQuestion(qi, { ...q, answers });
-                  }}
-                  placeholder="Текст ответа"
-                />
-                <input
-                  type="number"
-                  className="w-16 border rounded px-2 py-1 bg-gray-700 text-white border-gray-600 text-xs"
-                  value={a.points}
-                  onChange={(e) => {
-                    const answers = [...q.answers];
-                    answers[ai] = { ...a, points: parseInt(e.target.value) || 0 };
-                    updateQuestion(qi, { ...q, answers });
-                  }}
-                  placeholder="Очк."
-                />
-                <button
-                  className="text-red-400 hover:text-red-300 text-xs"
-                  onClick={() => {
-                    const answers = q.answers.filter((_, i) => i !== ai);
-                    updateQuestion(qi, { ...q, answers });
-                  }}
-                >
-                  x
-                </button>
-              </div>
-            ))}
-            <button
-              className="ml-4 text-blue-400 hover:text-blue-300 text-xs"
-              onClick={() => {
-                updateQuestion(qi, { ...q, answers: [...q.answers, { text: '', points: 10 }] });
-              }}
-            >
-              + Добавить ответ
-            </button>
-          </div>
+      {/* Simple Rounds */}
+      <div className="space-y-2">
+        <h3 className="font-semibold text-blue-400 text-sm uppercase">
+          Простые раунды ({simpleRounds.length}/{SIMPLE_ROUND_COUNT})
+        </h3>
+        {simpleRounds.map((q, i) => (
+          <QuestionEditor
+            key={i}
+            question={q}
+            index={i}
+            label={`Раунд ${i + 1} — ${['Простая', 'Двойная', 'Тройная'][i] ?? ''}`}
+            onChange={(q) => updateSimpleRound(i, q)}
+          />
         ))}
+        {simpleRounds.length < SIMPLE_ROUND_COUNT && (
+          <button
+            className="text-blue-400 hover:text-blue-300 text-sm"
+            onClick={() => setSimpleRounds([...simpleRounds, { question: '', answers: [{ text: '', points: 10 }] }])}
+          >
+            + Добавить раунд
+          </button>
+        )}
       </div>
 
-      <button
-        className="text-blue-400 hover:text-blue-300 text-sm"
-        onClick={addQuestion}
-      >
-        + Добавить вопрос
-      </button>
+      {/* Reverse Round */}
+      <div className="space-y-2">
+        <h3 className="font-semibold text-purple-400 text-sm uppercase">Игра наоборот (1 вопрос)</h3>
+        <QuestionEditor
+          question={reverseRound}
+          index={0}
+          label="Вопрос для игры наоборот"
+          onChange={setReverseRound}
+        />
+      </div>
+
+      {/* Big Game */}
+      <div className="space-y-2">
+        <h3 className="font-semibold text-yellow-400 text-sm uppercase">
+          Большая игра ({bigGame.length}/{BIG_GAME_QUESTIONS})
+        </h3>
+        {bigGame.map((q, i) => (
+          <QuestionEditor
+            key={i}
+            question={q}
+            index={i}
+            label={`Большая игра — вопрос ${i + 1}`}
+            onChange={(q) => updateBigGameQ(i, q)}
+          />
+        ))}
+        {bigGame.length < BIG_GAME_QUESTIONS && (
+          <button
+            className="text-yellow-400 hover:text-yellow-300 text-sm"
+            onClick={() => setBigGame([...bigGame, { question: '', answers: [{ text: '', points: 10 }] }])}
+          >
+            + Добавить вопрос
+          </button>
+        )}
+      </div>
 
       <button
         className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-500 disabled:opacity-50 font-bold"
         onClick={handleSave}
-        disabled={!name.trim() || questions.length === 0}
+        disabled={!isValid}
       >
         Сохранить набор
       </button>

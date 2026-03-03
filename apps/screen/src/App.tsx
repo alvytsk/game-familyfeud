@@ -4,6 +4,9 @@ import { QuestionHeader } from './components/QuestionHeader.js';
 import { TeamPanel } from './components/TeamPanel.js';
 import { AnswerGrid } from './components/AnswerGrid.js';
 import { StrikeOverlay } from './components/StrikeOverlay.js';
+import { StealOverlay } from './components/StealOverlay.js';
+import { ReverseBoard } from './components/ReverseBoard.js';
+import { BigGameBoard } from './components/BigGameBoard.js';
 import { MuteButton } from './components/MuteButton.js';
 import { useSoundEffects } from './audio/useSoundEffects.js';
 import { ensureResumed } from './audio/soundEngine.js';
@@ -14,9 +17,11 @@ export default function App() {
     gameState,
     lastReveal,
     lastStrike,
+    lastStealResult,
     timerRemaining,
     clearReveal,
     clearStrike,
+    clearSteal,
   } = useScreenState();
 
   useSoundEffects({ gameState, lastReveal, lastStrike, timerRemaining });
@@ -48,6 +53,19 @@ export default function App() {
       return () => clearTimeout(t);
     }
   }, [lastStrike, clearStrike]);
+
+  // Steal overlay auto-clear
+  const [showSteal, setShowSteal] = useState(false);
+  useEffect(() => {
+    if (lastStealResult) {
+      setShowSteal(true);
+      const t = setTimeout(() => {
+        setShowSteal(false);
+        clearSteal();
+      }, 1500);
+      return () => clearTimeout(t);
+    }
+  }, [lastStealResult, clearSteal]);
 
   if (!connected || !gameState) {
     return (
@@ -110,9 +128,35 @@ export default function App() {
     );
   }
 
-  // Playing or round-end
+  // Reverse phase
+  if (gameState.phase === 'reverse' && gameState.reverseRound) {
+    return (
+      <>
+        <div className="game-bg h-screen">
+          <ReverseBoard reverseRound={gameState.reverseRound} teams={gameState.teams} />
+        </div>
+        <MuteButton />
+      </>
+    );
+  }
+
+  // Big game phase
+  if (gameState.phase === 'big-game' && gameState.bigGame) {
+    return (
+      <>
+        <div className="game-bg h-screen">
+          <BigGameBoard bigGame={gameState.bigGame} timerRemaining={timerRemaining} />
+        </div>
+        <MuteButton />
+      </>
+    );
+  }
+
+  // Round phase (simple rounds)
   const round = gameState.round;
   if (!round) return null;
+
+  const isFaceoff = round.stage === 'faceoff';
 
   return (
     <>
@@ -122,6 +166,9 @@ export default function App() {
           roundNumber={gameState.roundNumber}
           totalRounds={gameState.totalRounds}
           timerRemaining={timerRemaining}
+          roundType={round.roundType}
+          multiplier={round.multiplier}
+          stage={round.stage}
         />
 
         <TeamPanel
@@ -129,12 +176,22 @@ export default function App() {
           isActive={gameState.activeTeamId === 'team-a'}
         />
 
-        <AnswerGrid
-          key={round.questionIndex}
-          answers={round.answers}
-          lastRevealRank={lastReveal?.rank ?? null}
-          onRevealAnimDone={clearReveal}
-        />
+        {isFaceoff ? (
+          <div className="flex items-center justify-center">
+            <div className="board-frame w-full max-w-[clamp(600px,60vw,1200px)] flex items-center justify-center py-[clamp(40px,10vh,120px)]">
+              <div className="font-display text-[clamp(3rem,6vw,6rem)] font-bold text-yellow-400 title-glow animate-pulse">
+                ?
+              </div>
+            </div>
+          </div>
+        ) : (
+          <AnswerGrid
+            key={round.questionIndex}
+            answers={round.answers}
+            lastRevealRank={lastReveal?.rank ?? null}
+            onRevealAnimDone={clearReveal}
+          />
+        )}
 
         <TeamPanel
           team={gameState.teams[1]}
@@ -142,6 +199,7 @@ export default function App() {
         />
 
         {showStrike && <StrikeOverlay />}
+        {showSteal && <StealOverlay />}
       </div>
       <MuteButton />
     </>

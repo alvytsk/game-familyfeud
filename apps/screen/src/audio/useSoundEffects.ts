@@ -67,11 +67,19 @@ export function useSoundEffects({
     const prevPhase = prevPhaseRef.current;
     const prevRound = prevRoundRef.current;
 
-    // Game start: lobby→playing, or round change while playing
-    if (phase === 'playing') {
-      if (prevPhase === 'lobby' || (prevPhase === 'playing' && prevRound !== null && round !== prevRound)) {
+    // Game start: lobby→round, or round change while in round phase
+    if (phase === 'round') {
+      if (prevPhase === 'lobby' || (prevPhase === 'round' && prevRound !== null && round !== prevRound)) {
         playGameStart();
       }
+    }
+
+    // Reverse or big game start
+    if (phase === 'reverse' && prevPhase === 'round') {
+      playGameStart();
+    }
+    if (phase === 'big-game' && prevPhase === 'reverse') {
+      playGameStart();
     }
 
     // Game over
