@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - PORT=3000
+      - HOST=0.0.0.0
+      - ADMIN_PIN=${ADMIN_PIN:-1234}
+      - DATA_PATH=/app/data/packs
+    volumes:
+      - pack-data:/app/data/packs
+
+volumes:
+  pack-data:

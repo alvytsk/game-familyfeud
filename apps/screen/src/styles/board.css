@@ -1,0 +1,216 @@
+/* ===== 100 к 1 — Screen Theme ===== */
+
+/* Background */
+.game-bg {
+  background: linear-gradient(180deg, #0a1628 0%, #1a3a6a 100%);
+  min-height: 100vh;
+}
+
+.lobby-bg {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 215, 0, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse at 20% 80%, rgba(0, 80, 200, 0.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(0, 80, 200, 0.2) 0%, transparent 50%),
+    linear-gradient(180deg, #05101f 0%, #0c2040 30%, #1a3a6a 70%, #0a1628 100%);
+  min-height: 100vh;
+}
+
+/* Metallic board frame */
+.board-frame {
+  background: linear-gradient(180deg, #c0c0c0 0%, #8a8a8a 6%, #e0e0e0 12%, #a0a0a0 50%, #e0e0e0 88%, #8a8a8a 94%, #c0c0c0 100%);
+  border-radius: 16px;
+  padding: 8px;
+  box-shadow:
+    0 0 20px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.board-inner {
+  background: #0d1b3e;
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Gold-striped unrevealed answer card */
+.answer-back {
+  background:
+    repeating-linear-gradient(
+      135deg,
+      #d4a017 0px,
+      #d4a017 6px,
+      #b8860b 6px,
+      #b8860b 12px,
+      #f0c040 12px,
+      #f0c040 18px,
+      #b8860b 18px,
+      #b8860b 24px
+    );
+  border: 2px solid #c8960c;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.answer-back::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 50%, rgba(0,0,0,0.15) 100%);
+  pointer-events: none;
+}
+
+/* Revealed answer card */
+.answer-front {
+  background: linear-gradient(180deg, #122252 0%, #0d1b3e 100%);
+  border: 2px solid #2a4a8a;
+  border-radius: 8px;
+}
+
+/* Red rank circle */
+.rank-circle {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  background: radial-gradient(circle at 35% 35%, #ff4444, #cc0000);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* LED-style timer */
+.led-timer {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 4rem;
+  letter-spacing: 0.05em;
+  color: #ffd700;
+  text-shadow:
+    0 0 10px rgba(255, 215, 0, 0.8),
+    0 0 20px rgba(255, 215, 0, 0.4);
+  font-variant-numeric: tabular-nums;
+}
+
+.led-timer--danger {
+  color: #ff3333;
+  text-shadow:
+    0 0 10px rgba(255, 0, 0, 0.8),
+    0 0 20px rgba(255, 0, 0, 0.4);
+  animation: led-pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes led-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Strike overlay */
+.strike-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.strike-overlay__x {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 40vmin;
+  color: #ff0000;
+  text-shadow:
+    0 0 40px rgba(255, 0, 0, 0.8),
+    0 0 80px rgba(255, 0, 0, 0.5),
+    0 0 120px rgba(255, 0, 0, 0.3);
+  animation: strike-flash 0.8s ease-out forwards;
+}
+
+@keyframes strike-flash {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  20% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  40% {
+    transform: scale(0.95);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+.strike-overlay__flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(255, 0, 0, 0.25) 0%, transparent 70%);
+  animation: flash-fade 0.8s ease-out forwards;
+}
+
+@keyframes flash-fade {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Team panel metallic border (base — must come before modifiers) */
+.team-panel {
+  background: linear-gradient(180deg, #0d1b3e 0%, #122252 100%);
+  border: 2px solid #3a5a9a;
+  border-radius: 12px;
+  transition: all 0.5s ease;
+}
+
+/* Active team golden glow */
+.team-active-glow {
+  background: linear-gradient(180deg, #4a3200 0%, #6b4800 35%, #7a5500 50%, #6b4800 65%, #4a3200 100%);
+  box-shadow:
+    0 0 20px rgba(255, 200, 0, 0.45),
+    0 0 40px rgba(255, 180, 0, 0.2),
+    inset 0 0 30px rgba(255, 200, 0, 0.1);
+  border: 2px solid #ffcc00;
+}
+
+/* Inactive team dimmed */
+.team-panel--inactive {
+  opacity: 0.5;
+}
+
+/* Question header */
+.question-header {
+  background: linear-gradient(180deg, #0a1230 0%, #162650 100%);
+  border-bottom: 2px solid #2a4a8a;
+}
+
+/* Font classes */
+.font-display {
+  font-family: 'Oswald', sans-serif;
+}
+
+.font-body {
+  font-family: 'PT Sans', sans-serif;
+}
+
+/* Lobby title glow */
+.title-glow {
+  text-shadow:
+    0 0 20px rgba(255, 215, 0, 0.6),
+    0 0 40px rgba(255, 215, 0, 0.3);
+}

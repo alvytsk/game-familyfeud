@@ -1,0 +1,45 @@
+/* Strike lamp indicators */
+.strike-lamp {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.strike-lamp--active {
+  background: radial-gradient(circle at 40% 40%, #ff4444, #cc0000);
+  border-color: #ff6666;
+  box-shadow:
+    0 0 12px rgba(255, 0, 0, 0.7),
+    0 0 30px rgba(255, 0, 0, 0.3),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+  animation: strike-pop 0.4s ease-out forwards;
+}
+
+.strike-lamp__cross {
+  color: white;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes strike-pop {
+  0% {
+    transform: scale(0) rotate(-15deg);
+  }
+  50% {
+    transform: scale(1.4) rotate(5deg);
+  }
+  70% {
+    transform: scale(0.9) rotate(-2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}

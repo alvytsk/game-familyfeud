@@ -1,0 +1,26 @@
+{
+  "name": "game-familyfeud",
+  "private": true,
+  "scripts": {
+    "dev:server": "pnpm --filter @familyfeud/server dev",
+    "dev:admin": "pnpm --filter @familyfeud/admin dev",
+    "dev:screen": "pnpm --filter @familyfeud/screen dev",
+    "dev": "pnpm -r --parallel dev",
+    "build:shared": "pnpm --filter @familyfeud/shared build",
+    "build": "pnpm build:shared && pnpm --filter @familyfeud/server build && pnpm --filter @familyfeud/admin build && pnpm --filter @familyfeud/screen build",
+    "typecheck": "pnpm -r typecheck",
+    "clean": "pnpm -r exec rm -rf dist node_modules/.vite"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

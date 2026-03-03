@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/main.tsx","./src/components/AnswerCard.tsx","./src/components/AnswerGrid.tsx","./src/components/QuestionHeader.tsx","./src/components/StrikeOverlay.tsx","./src/components/StrikesFooter.tsx","./src/components/TeamPanel.tsx","./src/hooks/useScreenState.ts"],"version":"5.9.3"}
