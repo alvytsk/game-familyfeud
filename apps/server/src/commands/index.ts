@@ -63,6 +63,10 @@ export async function handleCommand(cmd: AdminCommand): Promise<CommandResult> {
     }
 
     case 'add-strike': {
+      const current = gameState.getState();
+      if (current.activeTeamId !== cmd.teamId) {
+        throw new Error('Cannot strike the inactive team');
+      }
       let totalStrikes = 0;
       gameState.update(draft => {
         totalStrikes = handlers.addStrike(draft, cmd.teamId);

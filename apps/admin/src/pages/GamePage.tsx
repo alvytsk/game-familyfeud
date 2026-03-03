@@ -75,6 +75,7 @@ export function GamePage({ gameState, send }: Props) {
       {/* Strikes */}
       <StrikeControls
         teams={gameState.teams}
+        activeTeamId={gameState.activeTeamId}
         onAddStrike={(teamId) => send({ type: 'add-strike', teamId })}
       />
 

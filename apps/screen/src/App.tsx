@@ -54,8 +54,8 @@ export default function App() {
       <>
         <div className="lobby-bg flex items-center justify-center text-white font-body">
           <div className="text-center">
-            <div className="text-5xl font-display font-bold text-yellow-400 title-glow mb-4">100 к 1</div>
-            <div className="text-blue-300 animate-pulse text-lg">
+            <div className="text-[clamp(2rem,5vw,5rem)] font-display font-bold text-yellow-400 title-glow mb-4">100 к 1</div>
+            <div className="text-blue-300 animate-pulse text-[clamp(1rem,1.5vw,1.5rem)]">
               {!connected ? 'Подключение...' : 'Ожидание игры...'}
             </div>
           </div>
@@ -70,11 +70,11 @@ export default function App() {
       <>
         <div className="lobby-bg flex items-center justify-center text-white font-body">
           <div className="text-center">
-            <div className="text-7xl font-display font-bold text-yellow-400 title-glow mb-6">100 к 1</div>
-            <div className="text-3xl font-display text-blue-200">
+            <div className="text-[clamp(3rem,8vw,7rem)] font-display font-bold text-yellow-400 title-glow mb-6">100 к 1</div>
+            <div className="text-[clamp(1.5rem,3.5vw,3.5rem)] font-display text-blue-200">
               {gameState.teams[0].name} <span className="text-yellow-400 mx-3">vs</span> {gameState.teams[1].name}
             </div>
-            <div className="text-blue-400 mt-6 animate-pulse text-lg">Ожидание начала игры...</div>
+            <div className="text-blue-400 mt-6 animate-pulse text-[clamp(1rem,1.5vw,1.5rem)]">Ожидание начала игры...</div>
           </div>
         </div>
         <MuteButton />
@@ -92,13 +92,13 @@ export default function App() {
       <>
         <div className="game-bg flex items-center justify-center text-white font-body">
           <div className="text-center">
-            <div className="text-5xl font-display font-bold mb-6 text-yellow-400 title-glow">Игра окончена!</div>
+            <div className="text-[clamp(2.5rem,5vw,5rem)] font-display font-bold mb-6 text-yellow-400 title-glow">Игра окончена!</div>
             {isTie ? (
-              <div className="text-3xl text-yellow-300 font-display">Ничья! {gameState.teams[0].scoreTotal} очков</div>
+              <div className="text-[clamp(1.5rem,3.5vw,3.5rem)] text-yellow-300 font-display">Ничья! {gameState.teams[0].scoreTotal} очков</div>
             ) : (
               <>
-                <div className="text-4xl text-yellow-300 mb-3 font-display font-bold">{winner.name} — Победа!</div>
-                <div className="text-xl text-blue-300 font-body">
+                <div className="text-[clamp(2rem,4.5vw,4.5rem)] text-yellow-300 mb-3 font-display font-bold">{winner.name} — Победа!</div>
+                <div className="text-[clamp(1rem,2vw,2rem)] text-blue-300 font-body">
                   {gameState.teams[0].name}: {gameState.teams[0].scoreTotal} &mdash; {gameState.teams[1].name}: {gameState.teams[1].scoreTotal}
                 </div>
               </>
@@ -116,7 +116,7 @@ export default function App() {
 
   return (
     <>
-      <div className="game-bg font-body grid grid-cols-[200px_1fr_200px] grid-rows-[auto_1fr] h-screen">
+      <div className="game-bg font-body grid grid-cols-[clamp(180px,13vw,300px)_1fr_clamp(180px,13vw,300px)] grid-rows-[auto_1fr] h-screen">
         <QuestionHeader
           question={round.question}
           roundNumber={gameState.roundNumber}
@@ -127,7 +127,6 @@ export default function App() {
         <TeamPanel
           team={gameState.teams[0]}
           isActive={gameState.activeTeamId === 'team-a'}
-          side="left"
         />
 
         <AnswerGrid
@@ -140,7 +139,6 @@ export default function App() {
         <TeamPanel
           team={gameState.teams[1]}
           isActive={gameState.activeTeamId === 'team-b'}
-          side="right"
         />
 
         {showStrike && <StrikeOverlay />}

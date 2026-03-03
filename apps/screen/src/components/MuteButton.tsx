@@ -14,7 +14,7 @@ export function MuteButton() {
   return (
     <button
       onClick={toggle}
-      className="fixed bottom-4 right-4 z-50 bg-black/40 hover:bg-black/60 backdrop-blur rounded-full p-3 text-white transition-colors"
+      className="fixed bottom-4 right-4 z-50 bg-[#0d1b3e]/80 hover:bg-[#122252]/90 border border-[#2a4a8a] rounded-lg p-[clamp(8px,0.8vw,14px)] text-white transition-colors"
       aria-label={muted ? 'Unmute' : 'Mute'}
     >
       {muted ? (

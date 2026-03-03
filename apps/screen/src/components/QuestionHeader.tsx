@@ -7,9 +7,9 @@ interface Props {
 
 export function QuestionHeader({ question, roundNumber, totalRounds, timerRemaining }: Props) {
   return (
-    <div className="question-header text-white p-6 text-center col-span-3">
+    <div className="question-header text-white px-[clamp(16px,2vw,40px)] py-[clamp(12px,1.5vh,32px)] text-center col-span-3">
       <div className="flex justify-between items-center mb-2">
-        <span className="font-display text-blue-300 text-2xl font-semibold tracking-wider uppercase">
+        <span className="font-display text-blue-300 text-[clamp(1.1rem,1.8vw,2rem)] font-semibold tracking-wider uppercase">
           Раунд {roundNumber} / {totalRounds}
         </span>
         {timerRemaining !== null && (

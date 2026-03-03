@@ -1,8 +1,32 @@
 /* ===== 100 к 1 — Screen Theme ===== */
 
+/* Color tokens */
+:root {
+  --navy-deep: #0a1628;
+  --navy-mid: #0d1b3e;
+  --navy-light: #122252;
+  --navy-border: #2a4a8a;
+  --blue-panel-border: #3a5a9a;
+  --gold: #ffd700;
+  --gold-dark: #d4a017;
+  --gold-border: #c8960c;
+  --gold-brown: #b8860b;
+  --gold-light: #f0c040;
+  --gold-accent: #ffcc00;
+  --red: #ff4444;
+  --red-dark: #cc0000;
+  --red-bright: #ff0000;
+  --header-top: #0a1230;
+  --header-bottom: #162650;
+}
+
 /* Background */
 .game-bg {
-  background: linear-gradient(180deg, #0a1628 0%, #1a3a6a 100%);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 215, 0, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(0, 40, 120, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.4) 100%),
+    linear-gradient(180deg, var(--navy-deep) 0%, #1a3a6a 100%);
   min-height: 100vh;
 }
 
@@ -11,27 +35,27 @@
     radial-gradient(ellipse at 50% 0%, rgba(255, 215, 0, 0.12) 0%, transparent 60%),
     radial-gradient(ellipse at 20% 80%, rgba(0, 80, 200, 0.2) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 80%, rgba(0, 80, 200, 0.2) 0%, transparent 50%),
-    linear-gradient(180deg, #05101f 0%, #0c2040 30%, #1a3a6a 70%, #0a1628 100%);
+    linear-gradient(180deg, #05101f 0%, #0c2040 30%, #1a3a6a 70%, var(--navy-deep) 100%);
   min-height: 100vh;
 }
 
 /* Metallic board frame */
 .board-frame {
   background: linear-gradient(180deg, #c0c0c0 0%, #8a8a8a 6%, #e0e0e0 12%, #a0a0a0 50%, #e0e0e0 88%, #8a8a8a 94%, #c0c0c0 100%);
-  border-radius: 16px;
-  padding: 8px;
+  border-radius: clamp(10px, 1.2vw, 20px);
+  padding: clamp(6px, 0.6vw, 14px);
   box-shadow:
     0 0 20px rgba(0, 0, 0, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .board-inner {
-  background: #0d1b3e;
-  border-radius: 10px;
-  padding: 8px;
+  background: var(--navy-mid);
+  border-radius: clamp(6px, 0.8vw, 14px);
+  padding: clamp(6px, 1vh, 16px);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: clamp(4px, 0.8vh, 12px);
 }
 
 /* Gold-striped unrevealed answer card */
@@ -39,17 +63,17 @@
   background:
     repeating-linear-gradient(
       135deg,
-      #d4a017 0px,
-      #d4a017 6px,
-      #b8860b 6px,
-      #b8860b 12px,
-      #f0c040 12px,
-      #f0c040 18px,
-      #b8860b 18px,
-      #b8860b 24px
+      var(--gold-dark) 0px,
+      var(--gold-dark) clamp(4px, 0.6vh, 10px),
+      var(--gold-brown) clamp(4px, 0.6vh, 10px),
+      var(--gold-brown) clamp(8px, 1.2vh, 20px),
+      var(--gold-light) clamp(8px, 1.2vh, 20px),
+      var(--gold-light) clamp(12px, 1.8vh, 30px),
+      var(--gold-brown) clamp(12px, 1.8vh, 30px),
+      var(--gold-brown) clamp(16px, 2.4vh, 40px)
     );
-  border: 2px solid #c8960c;
-  border-radius: 8px;
+  border: 2px solid var(--gold-border);
+  border-radius: clamp(6px, 0.6vw, 12px);
   position: relative;
   overflow: hidden;
 }
@@ -64,24 +88,25 @@
 
 /* Revealed answer card */
 .answer-front {
-  background: linear-gradient(180deg, #122252 0%, #0d1b3e 100%);
-  border: 2px solid #2a4a8a;
-  border-radius: 8px;
+  background: linear-gradient(180deg, #1a2d6a 0%, var(--navy-mid) 100%);
+  border: 2px solid var(--navy-border);
+  border-radius: clamp(6px, 0.6vw, 12px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Red rank circle */
 .rank-circle {
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  background: radial-gradient(circle at 35% 35%, #ff4444, #cc0000);
+  width: clamp(32px, 4vh, 60px);
+  height: clamp(32px, 4vh, 60px);
+  min-width: clamp(32px, 4vh, 60px);
+  background: radial-gradient(circle at 35% 35%, var(--red), var(--red-dark));
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 2vh, 1.75rem);
   color: white;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
@@ -90,9 +115,9 @@
 .led-timer {
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 4rem;
+  font-size: clamp(2.5rem, 5vw, 5rem);
   letter-spacing: 0.05em;
-  color: #ffd700;
+  color: var(--gold);
   text-shadow:
     0 0 10px rgba(255, 215, 0, 0.8),
     0 0 20px rgba(255, 215, 0, 0.4);
@@ -127,7 +152,7 @@
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
   font-size: 40vmin;
-  color: #ff0000;
+  color: var(--red-bright);
   text-shadow:
     0 0 40px rgba(255, 0, 0, 0.8),
     0 0 80px rgba(255, 0, 0, 0.5),
@@ -172,8 +197,8 @@
 
 /* Team panel metallic border (base — must come before modifiers) */
 .team-panel {
-  background: linear-gradient(180deg, #0d1b3e 0%, #122252 100%);
-  border: 2px solid #3a5a9a;
+  background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy-light) 100%);
+  border: 2px solid var(--blue-panel-border);
   border-radius: 12px;
   transition: all 0.5s ease;
 }
@@ -185,18 +210,19 @@
     0 0 20px rgba(255, 200, 0, 0.45),
     0 0 40px rgba(255, 180, 0, 0.2),
     inset 0 0 30px rgba(255, 200, 0, 0.1);
-  border: 2px solid #ffcc00;
+  border: 2px solid var(--gold-accent);
 }
 
 /* Inactive team dimmed */
 .team-panel--inactive {
-  opacity: 0.5;
+  opacity: 0.65;
+  filter: saturate(0.5) brightness(0.8);
 }
 
 /* Question header */
 .question-header {
-  background: linear-gradient(180deg, #0a1230 0%, #162650 100%);
-  border-bottom: 2px solid #2a4a8a;
+  background: linear-gradient(180deg, var(--header-top) 0%, var(--header-bottom) 100%);
+  border-bottom: 2px solid var(--navy-border);
 }
 
 /* Font classes */

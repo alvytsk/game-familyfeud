@@ -3,22 +3,21 @@ import type { Team } from '@familyfeud/shared';
 interface Props {
   team: Team;
   isActive: boolean;
-  side: 'left' | 'right';
 }
 
-export function TeamPanel({ team, isActive, side }: Props) {
+export function TeamPanel({ team, isActive }: Props) {
   return (
     <div
       className={`
-        flex flex-col items-center justify-center p-4 m-2
+        flex flex-col items-center justify-center p-[clamp(12px,1.5vw,24px)] m-2
         team-panel transition-all duration-500
         ${isActive ? 'team-active-glow' : 'team-panel--inactive'}
       `}
     >
-      <div className="font-display text-lg font-semibold tracking-wider uppercase mb-2 truncate max-w-full text-blue-200">
+      <div className="font-display text-[clamp(0.9rem,1.2vw,1.5rem)] font-semibold tracking-wider uppercase mb-2 truncate max-w-full text-blue-200">
         {team.name}
       </div>
-      <div className="font-display text-5xl font-bold tabular-nums text-white">
+      <div className="font-display text-[clamp(2.5rem,5vw,4.5rem)] font-bold tabular-nums text-white">
         {team.scoreTotal}
       </div>
       {/* Strikes display */}
