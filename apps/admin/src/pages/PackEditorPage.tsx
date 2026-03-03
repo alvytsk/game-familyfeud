@@ -5,18 +5,27 @@ export function PackEditorPage() {
   const [packs, setPacks] = useState<QuestionPack[]>([]);
   const [editing, setEditing] = useState<QuestionPack | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchPacks = async () => {
     setLoading(true);
-    const res = await fetch('/api/packs');
-    const list = await res.json() as { id: string; name: string }[];
-    const full: QuestionPack[] = [];
-    for (const p of list) {
-      const r = await fetch(`/api/packs/${p.id}`);
-      full.push(await r.json() as QuestionPack);
+    setError(null);
+    try {
+      const res = await fetch('/api/packs');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const list = await res.json() as { id: string; name: string }[];
+      const full: QuestionPack[] = [];
+      for (const p of list) {
+        const r = await fetch(`/api/packs/${p.id}`);
+        if (!r.ok) continue;
+        full.push(await r.json() as QuestionPack);
+      }
+      setPacks(full);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка загрузки');
+    } finally {
+      setLoading(false);
     }
-    setPacks(full);
-    setLoading(false);
   };
 
   useEffect(() => { fetchPacks(); }, []);
@@ -25,19 +34,28 @@ export function PackEditorPage() {
     const existing = packs.find(p => p.id === pack.id);
     const method = existing ? 'PUT' : 'POST';
     const url = existing ? `/api/packs/${pack.id}` : '/api/packs';
-    await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(pack),
-    });
-    await fetchPacks();
-    setEditing(null);
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pack),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await fetchPacks();
+      setEditing(null);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Ошибка сохранения');
+    }
   };
 
   const deletePack = async (id: string) => {
     if (!confirm('Удалить этот набор?')) return;
-    await fetch(`/api/packs/${id}`, { method: 'DELETE' });
-    await fetchPacks();
+    try {
+      await fetch(`/api/packs/${id}`, { method: 'DELETE' });
+      await fetchPacks();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Ошибка удаления');
+    }
   };
 
   const exportPack = (pack: QuestionPack) => {
@@ -73,6 +91,13 @@ export function PackEditorPage() {
   };
 
   if (loading) return <div className="text-gray-400">Загрузка наборов...</div>;
+
+  if (error) return (
+    <div className="space-y-2">
+      <div className="text-red-400">Ошибка: {error}</div>
+      <button className="text-blue-400 hover:text-blue-300 text-sm" onClick={fetchPacks}>Повторить</button>
+    </div>
+  );
 
   if (editing) {
     return <PackForm pack={editing} onSave={savePack} onCancel={() => setEditing(null)} />;

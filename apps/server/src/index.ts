@@ -8,7 +8,7 @@ import { config } from './config.js';
 import { registerHealthRoute } from './routes/health.js';
 import { registerPackRoutes } from './routes/packs.js';
 import { registerWsGateway } from './ws/gateway.js';
-import { startTimerLoop } from './ws/timer.js';
+import { startTimerLoop, stopTimerLoop } from './ws/timer.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -70,6 +70,17 @@ async function main() {
 
   // Start timer loop
   startTimerLoop();
+
+  // Graceful shutdown
+  const shutdown = async (signal: string) => {
+    app.log.info(`${signal} received, shutting down...`);
+    stopTimerLoop();
+    await app.close();
+    process.exit(0);
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 
   await app.listen({ port: config.port, host: config.host });
   console.log(`Server listening on http://${config.host}:${config.port}`);

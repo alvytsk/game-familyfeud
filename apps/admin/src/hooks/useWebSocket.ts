@@ -18,8 +18,18 @@ export function useWebSocket(onMessage: MessageHandler) {
     ws.onopen = () => setConnected(true);
 
     ws.onmessage = (e) => {
-      const msg = JSON.parse(e.data) as ServerToAdmin;
+      let msg: ServerToAdmin;
+      try {
+        msg = JSON.parse(e.data) as ServerToAdmin;
+      } catch {
+        console.error('Failed to parse WS message');
+        return;
+      }
       onMessageRef.current(msg);
+    };
+
+    ws.onerror = () => {
+      console.error('WebSocket error');
     };
 
     ws.onclose = () => {

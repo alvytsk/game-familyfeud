@@ -4,19 +4,31 @@ import type { GameState, ServerToAdmin, ServerToScreen } from '@familyfeud/share
 const adminClients = new Set<WebSocket>();
 const screenClients = new Set<WebSocket>();
 
+function removeClient(ws: WebSocket): void {
+  adminClients.delete(ws);
+  screenClients.delete(ws);
+}
+
 export function addAdmin(ws: WebSocket): void {
   adminClients.add(ws);
-  ws.on('close', () => adminClients.delete(ws));
+  ws.on('close', () => removeClient(ws));
+  ws.on('error', () => removeClient(ws));
 }
 
 export function addScreen(ws: WebSocket): void {
   screenClients.add(ws);
-  ws.on('close', () => screenClients.delete(ws));
+  ws.on('close', () => removeClient(ws));
+  ws.on('error', () => removeClient(ws));
 }
 
 function send(ws: WebSocket, data: unknown): void {
   if (ws.readyState === ws.OPEN) {
-    ws.send(JSON.stringify(data));
+    try {
+      ws.send(JSON.stringify(data));
+    } catch {
+      // Client likely disconnected mid-send; clean up
+      removeClient(ws);
+    }
   }
 }
 

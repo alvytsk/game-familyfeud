@@ -49,9 +49,18 @@ COPY --from=build-admin /app/apps/admin/dist apps/admin/dist
 # Copy sample data
 COPY data/packs data/packs
 
+# Run as non-root user
+RUN addgroup --system --gid 1001 appgroup && \
+    adduser --system --uid 1001 --ingroup appgroup appuser && \
+    chown -R appuser:appgroup /app
+USER appuser
+
 ENV PORT=3000
 ENV HOST=0.0.0.0
 ENV DATA_PATH=/app/data/packs
 EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "fetch('http://localhost:3000/api/health').then(r=>{if(!r.ok)throw r;process.exit(0)}).catch(()=>process.exit(1))"
 
 CMD ["node", "apps/server/dist/index.js"]

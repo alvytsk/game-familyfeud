@@ -20,6 +20,10 @@ export function registerWsGateway(app: FastifyInstance): void {
     let authenticated = false;
     let role: 'admin' | 'screen' | null = null;
 
+    ws.on('error', (err) => {
+      app.log.error({ err }, 'WebSocket error');
+    });
+
     ws.on('message', async (raw: Buffer | string) => {
       let data: unknown;
       try {
@@ -57,8 +61,12 @@ export function registerWsGateway(app: FastifyInstance): void {
           sendToAdmin(ws, { type: 'auth-ok' });
           // Send current state and pack list
           sendToAdmin(ws, { type: 'state-snapshot', state: gameState.getState() });
-          const packs = await listPacks();
-          sendToAdmin(ws, { type: 'pack-list', packs });
+          try {
+            const packs = await listPacks();
+            sendToAdmin(ws, { type: 'pack-list', packs });
+          } catch (err) {
+            app.log.error({ err }, 'Failed to list packs on auth');
+          }
         } else {
           sendToAdmin(ws, { type: 'auth-fail', reason: 'Invalid PIN' });
         }
@@ -89,8 +97,12 @@ export function registerWsGateway(app: FastifyInstance): void {
 
         // Send pack list if requested
         if (result.sendPackList) {
-          const packs = await listPacks();
-          broadcastToAdmins({ type: 'pack-list', packs });
+          try {
+            const packs = await listPacks();
+            broadcastToAdmins({ type: 'pack-list', packs });
+          } catch (err) {
+            app.log.error({ err }, 'Failed to list packs after command');
+          }
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error';

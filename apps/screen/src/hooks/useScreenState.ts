@@ -87,7 +87,13 @@ export function useScreenState() {
     };
 
     ws.onmessage = (e) => {
-      const msg = JSON.parse(e.data) as ServerToScreen;
+      let msg: ServerToScreen;
+      try {
+        msg = JSON.parse(e.data) as ServerToScreen;
+      } catch {
+        console.error('Failed to parse WS message');
+        return;
+      }
       switch (msg.type) {
         case 'state-snapshot':
           dispatch({ type: 'state-snapshot', state: msg.state });
@@ -102,6 +108,10 @@ export function useScreenState() {
           dispatch({ type: 'timer-tick', remaining: msg.remaining });
           break;
       }
+    };
+
+    ws.onerror = () => {
+      console.error('WebSocket error');
     };
 
     ws.onclose = () => {
