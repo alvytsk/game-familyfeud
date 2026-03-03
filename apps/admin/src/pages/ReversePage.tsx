@@ -75,10 +75,22 @@ export function ReversePage({ gameState, send }: Props) {
                       {rank}
                     </button>
                   ))}
+                  <button
+                    className={`px-3 h-10 rounded font-bold text-sm ${
+                      choice === 0
+                        ? 'bg-red-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                    onClick={() => send({ type: 'set-reverse-choice', teamId: teamId as TeamId, rank: 0 })}
+                  >
+                    ✗
+                  </button>
                 </div>
                 {choice !== null && (
                   <div className="text-sm text-gray-400">
-                    Выбрано: #{choice} ({REVERSE_ROUND_POINTS[choice] ?? 0} очк.)
+                    {choice === 0
+                      ? 'Нет в списке (0 очк.)'
+                      : `Выбрано: #${choice} (${REVERSE_ROUND_POINTS[choice] ?? 0} очк.)`}
                   </div>
                 )}
               </div>
@@ -101,10 +113,10 @@ export function ReversePage({ gameState, send }: Props) {
           <div className="font-bold text-green-400 text-center">Результаты «Игры наоборот»</div>
           {gameState.teams.map(team => {
             const choice = team.id === 'team-a' ? rev.teamAChoice : rev.teamBChoice;
-            const points = choice !== null ? (REVERSE_ROUND_POINTS[choice] ?? 0) : 0;
+            const points = choice !== null && choice > 0 ? (REVERSE_ROUND_POINTS[choice] ?? 0) : 0;
             return (
               <div key={team.id} className="flex justify-between">
-                <span>{team.name}: ответ #{choice}</span>
+                <span>{team.name}: {choice === 0 ? 'нет в списке' : `ответ #${choice}`}</span>
                 <span className="text-yellow-400 font-bold">+{points} очк.</span>
               </div>
             );
