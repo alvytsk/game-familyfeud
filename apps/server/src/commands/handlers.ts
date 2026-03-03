@@ -249,6 +249,16 @@ export function setReverseChoice(draft: GameState, teamId: TeamId, rank: number)
   }
 }
 
+export function revealReverseAnswer(draft: GameState, rank: number): boolean {
+  if (!draft.reverseRound) return false;
+
+  const slot = draft.reverseRound.answers.find(a => a.rank === rank);
+  if (!slot || slot.revealed) return false;
+
+  slot.revealed = true;
+  return true;
+}
+
 export function revealReverse(draft: GameState): void {
   if (!draft.reverseRound) return;
 

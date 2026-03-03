@@ -139,6 +139,17 @@ export async function handleCommand(cmd: AdminCommand): Promise<CommandResult> {
       gameState.update(draft => handlers.setReverseChoice(draft, cmd.teamId, cmd.rank));
       break;
 
+    case 'reveal-reverse-answer': {
+      let revealed = false;
+      gameState.update(draft => {
+        revealed = handlers.revealReverseAnswer(draft, cmd.rank);
+      });
+      if (revealed) {
+        result.screenEvents = [{ type: 'reverse-answer-revealed', rank: cmd.rank }];
+      }
+      break;
+    }
+
     case 'reveal-reverse':
       gameState.update(draft => handlers.revealReverse(draft));
       result.screenEvents = [{ type: 'reverse-revealed' }];

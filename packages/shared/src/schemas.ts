@@ -26,6 +26,7 @@ export const AdminCommandSchema = z.discriminatedUnion('type', [
   // New: reverse round commands
   z.object({ type: z.literal('start-reverse') }),
   z.object({ type: z.literal('set-reverse-choice'), teamId: TeamIdSchema, rank: z.number().int().min(1).max(6) }),
+  z.object({ type: z.literal('reveal-reverse-answer'), rank: z.number().int().min(1).max(6) }),
   z.object({ type: z.literal('reveal-reverse') }),
   // New: big game commands
   z.object({ type: z.literal('start-big-game') }),

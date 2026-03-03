@@ -26,8 +26,8 @@ export function AnswerCard({ answer, justRevealed, onRevealDone }: Props) {
         {/* Front face — dark navy with white text */}
         <div className="card-face card-front answer-front flex items-center px-[clamp(8px,1vw,20px)] gap-[clamp(8px,1vw,16px)]">
           <div className="rank-circle">{answer.rank}</div>
-          <span className="font-body text-[clamp(1rem,2vh,2rem)] font-bold text-white truncate flex-1">{answer.text}</span>
-          <span className="font-display text-[clamp(1.1rem,2.5vh,2.5rem)] font-bold text-yellow-400 tabular-nums ml-2">{answer.points}</span>
+          <span className="font-body text-[clamp(1.3rem,2.8vh,2.5rem)] font-bold text-white truncate flex-1">{answer.text}</span>
+          <span className="font-display text-[clamp(1.4rem,3vh,2.8rem)] font-bold text-yellow-400 tabular-nums ml-2">{answer.points}</span>
         </div>
       </div>
     </div>

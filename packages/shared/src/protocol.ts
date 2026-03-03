@@ -25,6 +25,7 @@ export type AdminCommand =
   // New: reverse round commands
   | { type: 'start-reverse' }
   | { type: 'set-reverse-choice'; teamId: TeamId; rank: number }
+  | { type: 'reveal-reverse-answer'; rank: number }
   | { type: 'reveal-reverse' }
   // New: big game commands
   | { type: 'start-big-game' }
@@ -48,6 +49,7 @@ export type ServerToScreen =
   | { type: 'timer-tick'; remaining: number }
   | { type: 'stage-changed'; stage: RoundStage; teamId: TeamId | null }
   | { type: 'steal-result'; success: boolean; teamId: TeamId }
+  | { type: 'reverse-answer-revealed'; rank: number }
   | { type: 'reverse-revealed' }
   | { type: 'big-game-answer-revealed'; questionIndex: number; playerNum: 1 | 2; points: number }
   | { type: 'big-game-phase-changed'; phase: string };

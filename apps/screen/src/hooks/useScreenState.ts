@@ -27,6 +27,7 @@ type Action =
   | { type: 'clear-strike' }
   | { type: 'stage-changed'; stage: RoundStage; teamId: TeamId | null }
   | { type: 'steal-result'; success: boolean; teamId: TeamId }
+  | { type: 'reverse-answer-revealed'; rank: number }
   | { type: 'reverse-revealed' }
   | { type: 'big-game-answer-revealed'; questionIndex: number; playerNum: 1 | 2; points: number }
   | { type: 'big-game-phase-changed'; phase: string }
@@ -73,6 +74,8 @@ function reducer(state: ScreenState, action: Action): ScreenState {
       return { ...state, lastStageChange: { stage: action.stage, teamId: action.teamId } };
     case 'steal-result':
       return { ...state, lastStealResult: { success: action.success, teamId: action.teamId } };
+    case 'reverse-answer-revealed':
+      return state; // Individual reveals handled via state-snapshot (per-answer revealed flag)
     case 'reverse-revealed':
       return { ...state, lastReverseRevealed: true };
     case 'big-game-answer-revealed':
@@ -145,6 +148,9 @@ export function useScreenState() {
           break;
         case 'steal-result':
           dispatch({ type: 'steal-result', success: msg.success, teamId: msg.teamId });
+          break;
+        case 'reverse-answer-revealed':
+          dispatch({ type: 'reverse-answer-revealed', rank: msg.rank });
           break;
         case 'reverse-revealed':
           dispatch({ type: 'reverse-revealed' });

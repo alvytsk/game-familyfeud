@@ -25,21 +25,29 @@ export function ReversePage({ gameState, send }: Props) {
         <div className="text-lg font-bold">{rev.question}</div>
       </div>
 
-      {/* Answers with fixed scoring */}
+      {/* Answers with reveal buttons */}
       <div className="bg-gray-800 rounded-lg p-3 space-y-1">
-        <div className="text-xs text-gray-400 mb-2">Ответы (фиксированные очки)</div>
+        <div className="text-xs text-gray-400 mb-2">Ответы (нажмите чтобы открыть)</div>
         {rev.answers.map(a => (
-          <div
+          <button
             key={a.rank}
-            className={`flex justify-between px-3 py-1.5 rounded text-sm ${
-              rev.revealed
-                ? 'bg-green-800/50'
-                : 'bg-gray-700'
+            className={`flex justify-between items-center w-full px-3 py-2 rounded text-sm transition-colors ${
+              a.revealed
+                ? 'bg-green-800/50 cursor-default'
+                : 'bg-gray-700 hover:bg-gray-600 cursor-pointer'
             }`}
+            onClick={() => {
+              if (!a.revealed) {
+                send({ type: 'reveal-reverse-answer', rank: a.rank });
+              }
+            }}
+            disabled={a.revealed}
           >
-            <span>#{a.rank} {a.text}</span>
+            <span className={a.revealed ? 'text-white' : 'text-gray-300'}>
+              #{a.rank} {a.text}
+            </span>
             <span className="text-yellow-400 font-bold">{a.points} очк.</span>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -82,7 +90,7 @@ export function ReversePage({ gameState, send }: Props) {
             onClick={() => send({ type: 'reveal-reverse' })}
             disabled={rev.teamAChoice === null || rev.teamBChoice === null}
           >
-            Открыть результаты
+            Подвести итоги
           </button>
         </div>
       )}

@@ -199,7 +199,7 @@ export default function App() {
         />
 
         {showStrike && <StrikeOverlay />}
-        {showSteal && <StealOverlay />}
+        {showSteal && lastStealResult && <StealOverlay success={lastStealResult.success} />}
       </div>
       <MuteButton />
     </>
