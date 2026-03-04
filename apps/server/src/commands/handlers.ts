@@ -6,6 +6,7 @@ import {
   ROUND_MULTIPLIERS,
   BIG_GAME_TIMER_PLAYER1,
   BIG_GAME_TIMER_PLAYER2,
+  BIG_GAME_POINTS_PER_ANSWER,
 } from '@familyfeud/shared';
 
 function getTeam(draft: GameState, teamId: TeamId) {
@@ -332,15 +333,8 @@ export function bigGameSelectMatch(draft: GameState, questionIndex: number, rank
   const isPlayer1 = draft.bigGame.phase === 'player1';
   const answer = isPlayer1 ? q.player1Answer : q.player2Answer;
 
-  // Create answer entry if it doesn't exist yet
-  let points = 0;
-  if (rank > 0) {
-    // rank is 1-based, answers are 0-based
-    const matched = q.answers[rank - 1];
-    if (matched) {
-      points = matched.points;
-    }
-  }
+  // Fixed 100 points per matched answer, 0 for no match
+  let points = rank > 0 ? BIG_GAME_POINTS_PER_ANSWER : 0;
 
   const entry = {
     playerAnswer: '',

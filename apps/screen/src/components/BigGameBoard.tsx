@@ -132,8 +132,7 @@ export function BigGameBoard({ bigGame, timerRemaining }: Props) {
                 const matchedA = currentQ.answers[answer.matchedRank - 1];
                 return (
                   <div className="bg-green-800/50 rounded-lg p-[clamp(8px,1.5vw,20px)] text-center">
-                    <div className="font-body text-[clamp(1rem,2vw,2rem)] font-bold text-white">{matchedA?.text}</div>
-                    <div className="font-display text-[clamp(1.5rem,3vw,3rem)] font-bold text-yellow-400">{answer.points}</div>
+                    <div className="font-body text-[clamp(1.2rem,2.5vw,2.5rem)] font-bold text-white">{matchedA?.text}</div>
                   </div>
                 );
               })()}

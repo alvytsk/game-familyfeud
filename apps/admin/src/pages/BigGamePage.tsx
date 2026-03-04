@@ -17,7 +17,6 @@ export function BigGamePage({ gameState, send }: Props) {
   const isPlayer2 = bg.phase === 'player2';
   const isFinal = bg.phase === 'final';
   const combinedTotal = bg.player1Total + bg.player2Total;
-
   const currentAnswer = isPlayer1 ? currentQ?.player1Answer : currentQ?.player2Answer;
   const hasAnswered = currentAnswer?.matchedRank !== undefined && currentAnswer?.matchedRank !== null;
 
@@ -82,7 +81,6 @@ export function BigGamePage({ gameState, send }: Props) {
                 >
                   <span className="font-bold mr-2">#{rank}</span>
                   {a.text}
-                  <span className="float-right tabular-nums">{a.points} очк.</span>
                 </button>
               );
             })}
